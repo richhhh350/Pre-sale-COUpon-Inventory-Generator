@@ -633,7 +633,7 @@ function generate(params,report){
   report(95,'源表已附加');
 
   var fn='抖音城市号预售券货盘_'+fmtDate(new Date())+'.xlsx';
-  var wbOut=XLSX.write(outWb,{bookType:'xlsx',type:'array',cellFormula:true,cellStyles:true});
+  var wbOut=XLSX.write(outWb,{bookType:'xlsx',type:'array',cellFormula:true});
 
   var ruleLabel=saleWeeks<=4?'4周以内规则':'≥1个月规则';
   var warns=[];
@@ -658,7 +658,7 @@ function generate(params,report){
 // ============================================================
 self.onmessage=function(e){
   var d=e.data,id=d.id;
-  function reply(data,transfer){data.id=id;if(transfer)self.postMessage(data,transfer);else self.postMessage(data);}
+  function reply(data,transfer){data.id=id;try{if(transfer)self.postMessage(data,transfer);else self.postMessage(data);}catch(e){try{self.postMessage({id:id,type:'genErr',error:'数据发送失败: '+e.message});}catch(e2){}}}
   try{
     if(d.type==='upload'){
       var raw=XLSX.read(new Uint8Array(d.data),{type:'array'});
@@ -668,10 +668,9 @@ self.onmessage=function(e){
       reply({type:'uploadOk',index:d.index,rows:cleanAoa[d.index].length,cols:(cleanAoa[d.index][0]||[]).length,filename:d.name});
     }else if(d.type==='generate'){
       var result=generate(d.params,function(pct,msg,dhint){
-        if(dhint)self.postMessage({id:id,type:'dhint',text:msg});
-        else self.postMessage({id:id,type:'progress',pct:pct,msg:msg});
+        try{if(dhint)self.postMessage({id:id,type:'dhint',text:msg});else self.postMessage({id:id,type:'progress',pct:pct,msg:msg});}catch(e){}
       });
-      reply({type:'genOk',workbook:result.workbook,filename:result.filename,summary:result.summary},[result.workbook.buffer]);
+      var buf=(result.workbook&&result.workbook.buffer)?result.workbook.buffer:null; reply({type:'genOk',workbook:buf?new Uint8Array(buf):result.workbook,filename:result.filename,summary:result.summary},buf?[buf]:null);
     }else if(d.type==='reset'){
       rawWb={1:null,2:null,3:null,4:null};
       cleanAoa={1:null,2:null,3:null,4:null};
