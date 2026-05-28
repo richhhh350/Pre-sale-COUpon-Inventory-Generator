@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>抖音城市号预售券货盘自动生成系统</title>
+<style>
+:root{--pri:#1a3a5c;--pri2:#2c5f8a;--acc:#c8a45a;--acc2:#f5ecd7;--bg:#f4f6f8;--card:#fff;--bd:#dde3e9;--txt:#2c3e50;--muted:#6b7d8e;--danger:#e74c3c;--success:#27ae60;--r:8px;--online:#2ecc71}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;background:var(--bg);color:var(--txt);line-height:1.6}
+.header{background:linear-gradient(135deg,var(--pri),var(--pri2));color:#fff;padding:18px 28px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px}
+.header h1{font-size:20px;font-weight:600}
+.header .badge{background:var(--acc);color:#fff;padding:4px 12px;border-radius:20px;font-size:11px;font-weight:500}
+.header .online-dot{width:8px;height:8px;background:var(--online);border-radius:50%;display:inline-block;margin-right:4px;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.container{max-width:1340px;margin:0 auto;padding:16px 20px}
+.section{background:var(--card);border-radius:var(--r);box-shadow:0 2px 12px rgba(0,0,0,.05);padding:20px 22px;margin-bottom:16px}
+.sec-title{font-size:15px;font-weight:600;color:var(--pri);margin-bottom:12px;padding-bottom:8px;border-bottom:2px solid var(--acc2);display:flex;align-items:center;gap:7px}
+.sec-title .n{width:24px;height:24px;background:var(--acc);border-radius:5px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:12px;font-weight:700}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.upbox{border:2px dashed var(--bd);border-radius:var(--r);padding:20px 14px;text-align:center;cursor:pointer;transition:all .2s;position:relative;background:#fafbfc;min-height:120px;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.upbox:hover{border-color:var(--pri2);background:#f0f4f8}
+.upbox.ok{border-color:var(--success);border-style:solid;background:#f0faf4}
+.upbox.busy{border-color:var(--acc);border-style:solid;background:#fffdf5;animation:shimmer 1.5s infinite}
+@keyframes shimmer{0%{opacity:1}50%{opacity:.7}100%{opacity:1}}
+.upbox .ico{font-size:28px;margin-bottom:4px}
+.upbox .lbl{font-size:12px;font-weight:500}
+.upbox .hint{font-size:10px;color:var(--muted);margin-top:2px}
+.upbox .fn{font-size:10px;color:var(--success);margin-top:4px;font-weight:500;word-break:break-all}
+.upbox input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer}
+.fg{margin-bottom:11px}
+.fg label{display:block;font-size:12px;font-weight:500;margin-bottom:2px}
+.fg input,.fg select,.fg textarea{width:100%;padding:7px 10px;border:1px solid var(--bd);border-radius:5px;font-size:12px;font-family:inherit;background:#fff}
+.fg input:focus,.fg select:focus,.fg textarea:focus{outline:none;border-color:var(--pri2);box-shadow:0 0 0 2px rgba(44,95,138,.07)}
+.fg textarea{resize:vertical;min-height:50px}
+.frow{display:flex;gap:8px}.frow .fg{flex:1}
+.rgroup{display:flex;gap:12px;flex-wrap:wrap}
+.rgroup label{display:flex;align-items:center;gap:4px;font-size:12px;cursor:pointer;padding:6px 11px;border:1px solid var(--bd);border-radius:5px;transition:all .2s;white-space:nowrap}
+.rgroup label:hover{border-color:var(--pri2)}
+.rgroup label:has(input:checked){border-color:var(--pri2);background:#f0f4f8;font-weight:600;color:var(--pri)}
+.wegroup{display:flex;gap:6px;flex-wrap:wrap}
+.wegroup label{display:flex;align-items:center;gap:3px;font-size:12px;cursor:pointer;padding:6px 12px;border:1px solid var(--bd);border-radius:20px;transition:all .2s;white-space:nowrap;background:#fff}
+.wegroup label:hover{border-color:var(--pri2)}
+.wegroup label.sel{border-color:var(--pri2);background:#e8f0f8;font-weight:600;color:var(--pri)}
+.holbox{border:1px solid var(--bd);border-radius:var(--r);padding:10px 14px;background:#fafbfc}
+.holbox .holrow{display:flex;gap:8px;align-items:center;margin-top:6px}
+.holbox .holrow input[type=date]{padding:5px 8px;border:1px solid var(--bd);border-radius:4px;font-size:12px;font-family:inherit}
+.holbox .holrow .btn-sm{padding:5px 12px;font-size:11px}
+.hollist{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px;min-height:22px}
+.hollist .tag{background:#fef9e7;border:1px solid #ffeeba;padding:2px 8px;border-radius:12px;font-size:11px;display:flex;align-items:center;gap:4px}
+.hollist .tag .x{cursor:pointer;color:var(--danger);font-weight:700;font-size:13px;line-height:1}
+.hollist .tag .x:hover{color:#c0392b}
+.req::after{content:' *';color:var(--danger)}
+.btn{padding:8px 20px;border:none;border-radius:5px;font-size:13px;font-weight:500;cursor:pointer;transition:all .2s;font-family:inherit}
+.btn-pri{background:var(--pri);color:#fff}.btn-pri:hover{background:var(--pri2)}
+.btn-pri:disabled{opacity:.5;cursor:not-allowed}
+.btn-lg{padding:12px 34px;font-size:15px}
+.btn-sec{background:#fff;color:var(--pri);border:1px solid var(--pri)}
+.btn-sm{padding:5px 12px;font-size:11px;border:none;border-radius:4px;cursor:pointer;font-family:inherit}
+.btn-cen{text-align:center;margin-top:12px}
+.bar{padding:10px 14px;border-radius:5px;font-size:12px;margin-top:8px;display:none;line-height:1.5}
+.bar.info{display:block;background:#eef5fc;color:var(--pri2);border:1px solid #c8ddf0}
+.bar.success{display:block;background:#eafaf1;color:#1e7e34;border:1px solid #a3d9b1}
+.bar.error{display:block;background:#fdecea;color:var(--danger);border:1px solid #f5c6cb}
+.bar.warning{display:block;background:#fef9e7;color:#856404;border:1px solid #ffeeba}
+.pwrap{display:none;margin-top:8px;align-items:center;gap:8px}
+.pwrap.on{display:flex}
+.pwrap .pb{flex:1;height:5px;background:var(--bd);border-radius:3px;overflow:hidden}
+.pwrap .pb span{display:block;height:100%;background:var(--pri2);border-radius:3px;transition:width .3s;width:0}
+.pwrap .pct{font-size:11px;color:var(--muted);min-width:32px}
+.stab{width:100%;border-collapse:collapse;font-size:12px;margin-top:6px}
+.stab th,.stab td{padding:6px 9px;border:1px solid var(--bd);text-align:left}
+.stab th{background:#f0f4f8;font-weight:600;white-space:nowrap}
+.stab .wc{color:#856404;font-size:11px}
+.tip{font-size:10px;color:var(--muted);margin-top:2px}
+.foot{text-align:center;padding:14px;font-size:10px;color:var(--muted);border-top:1px solid var(--bd);margin-top:6px}
+.ws-status{font-size:10px;color:var(--muted);margin-left:4px}
+@media(max-width:900px){.grid2,.grid4{grid-template-columns:1fr}.frow{flex-direction:column}}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div>
+    <h1>抖音城市号预售券货盘自动生成系统</h1>
+    <div style="font-size:11px;opacity:.85;margin-top:1px;">原始数据直接使用 → 手动添加节假日 → 严格全字匹配房型 → XLOOKUP/AVERAGEIF/IFS全公式 <span class="ws-status" id="wsStat">⚫ 引擎启动中...</span></div>
+  </div>
+  <span class="badge">v7.0 · Web Worker多用户并发版</span>
+</div>
+
+<div class="container">
+
+  <div class="section">
+    <div class="sec-title"><span class="n">1</span>底表上传（原始数据不预处理）</div>
+    <div class="grid4">
+      <div class="upbox" id="box1"><div class="ico">&#128197;</div><div class="lbl req">去年同期</div><div class="hint">A事业部 B一级分区 G商圈 I品牌级别 J酒店类型 O酒店编码 P酒店名称 Q日期 AD过夜出租率</div><div class="fn" id="fn1"></div><input type="file" accept=".xlsx,.xls" id="f1" onchange="uploadFile(1,this)"></div>
+      <div class="upbox" id="box2"><div class="ico">&#128200;</div><div class="lbl req">今年历史</div><div class="hint">结构同去年同期</div><div class="fn" id="fn2"></div><input type="file" accept=".xlsx,.xls" id="f2" onchange="uploadFile(2,this)"></div>
+      <div class="upbox" id="box3"><div class="ico">&#128201;</div><div class="lbl req">去年历史</div><div class="hint">结构同去年同期</div><div class="fn" id="fn3"></div><input type="file" accept=".xlsx,.xls" id="f3" onchange="uploadFile(3,this)"></div>
+      <div class="upbox" id="box4"><div class="ico">&#128176;</div><div class="lbl req">房型远期价格</div><div class="hint">A区域经理 B酒店ID C酒店名称 D房型 第11行日期(7列) 第12行指标 J/Q/W列为门市价</div><div class="fn" id="fn4"></div><input type="file" accept=".xlsx,.xls" id="f4" onchange="uploadFile(4,this)"></div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="sec-title"><span class="n">2</span>参数配置</div>
+    <div class="grid2">
+      <div>
+        <div class="fg"><label class="req">产品类型</label>
+          <div class="rgroup">
+            <label><input type="radio" name="pt" value="single" checked><span>单晚</span></label>
+            <label><input type="radio" name="pt" value="double_split"><span>双晚可拆分</span></label>
+            <label><input type="radio" name="pt" value="double_nosplit"><span>双晚不可拆</span></label>
+          </div>
+        </div>
+        <div class="frow">
+          <div class="fg"><label class="req">售卖开始</label><input type="date" id="ss"></div>
+          <div class="fg"><label class="req">售卖结束</label><input type="date" id="se"></div>
+        </div>
+        <div class="frow">
+          <div class="fg"><label class="req">入住开始</label><input type="date" id="cs"></div>
+          <div class="fg"><label class="req">入住结束</label><input type="date" id="ce"></div>
+        </div>
+        <div class="tip" id="dhint"></div>
+
+        <div class="fg" style="margin-top:8px"><label class="req">周末加价（多选）</label>
+          <div class="wegroup" id="weg">
+            <label class="sel"><input type="checkbox" value="1" onchange="weUp()"><span>周一</span></label>
+            <label class="sel"><input type="checkbox" value="2" onchange="weUp()"><span>周二</span></label>
+            <label class="sel"><input type="checkbox" value="3" onchange="weUp()"><span>周三</span></label>
+            <label class="sel"><input type="checkbox" value="4" onchange="weUp()"><span>周四</span></label>
+            <label class="sel"><input type="checkbox" value="5" checked onchange="weUp()"><span>周五</span></label>
+            <label class="sel"><input type="checkbox" value="6" checked onchange="weUp()"><span>周六</span></label>
+            <label><input type="checkbox" value="0" onchange="weUp()"><span>周日</span></label>
+          </div>
+          <div class="tip">默认周五、周六。节假日优先级高于周末（重叠→节假日）。</div>
+        </div>
+      </div>
+
+      <div>
+        <div class="fg"><label>节假日加价（手动添加）</label>
+          <div class="holbox">
+            <div class="holrow">
+              <input type="date" id="holPick" style="flex:1">
+              <button class="btn btn-sm btn-pri" onclick="addHoliday()" type="button">添加日期</button>
+            </div>
+            <div class="hollist" id="holList"></div>
+            <div class="tip" style="margin-top:4px">仅以手动添加的日期为节假日，不取T-1，不用内置节假日。</div>
+          </div>
+        </div>
+        <div class="fg"><label class="req">参与酒店ID（留空=全部）</label>
+          <textarea id="hids" placeholder="10001&#10;10002&#10;（留空则包含全部酒店）"></textarea>
+        </div>
+        <div class="fg"><label>手动标记新店ID（选填，开业≤1年）</label>
+          <textarea id="nhids" placeholder="每行一个酒店ID&#10;留空自动判定"></textarea>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="sec-title"><span class="n">3</span>生成货盘（XLOOKUP门市价 + AVERAGEIF均价 + 6 Sheet输出）</div>
+    <div class="btn-cen">
+      <button class="btn btn-pri btn-lg" id="gbtn" onclick="triggerGenerate()">生成货盘Excel</button>
+      <button class="btn btn-sec" style="margin-left:8px" onclick="resetAll()">重置</button>
+    </div>
+    <div class="pwrap" id="pw"><span style="font-size:11px;color:var(--muted)">进度</span><div class="pb"><span id="pf"></span></div><span class="pct" id="ppct">0%</span></div>
+    <div class="bar" id="sbar"></div>
+    <div id="sum"></div>
+  </div>
+
+</div>
+<div class="foot">
+  所有计算均在浏览器本地完成 · 异步Worker处理不卡顿 · 支持多人同时在线使用 · 需Excel 365（支持XLOOKUP动态数组）<br>
+  <b>使用说明：</b>上传4个底表→选产品类型→填日期→选周末→手动添加节假日→填酒店ID→生成。导出6 Sheet含规则汇总，门市价用XLOOKUP公式，均价用AVERAGEIF公式，修改源数据即可刷新。
+</div>
+
+<script>
+// ============================================================
+// MAIN THREAD — UI & Worker Management
+// ============================================================
+var worker;
+var pendingId=0;
+var callbacks={};
+var uploadCount={1:false,2:false,3:false,4:false};
+var customHolidays=[];
+
+function initWorker(){
+  var workerEl=document.getElementById('workerCode');
+  if(!workerEl){document.getElementById('wsStat').innerHTML='<span style="color:#e74c3c">&#9888;</span> Worker代码未找到';return;}
+  var workerCode=workerEl.textContent;
+  if(!workerCode||workerCode.trim().length===0){document.getElementById('wsStat').innerHTML='<span style="color:#e74c3c">&#9888;</span> Worker代码为空';return;}
+  try{
+    var blob=new Blob([workerCode],{type:'application/javascript'});
+    var url=URL.createObjectURL(blob);
+    worker=new Worker(url);
+    worker.onmessage=handleWorkerMsg;
+    worker.onerror=function(e){setMsg('error','Worker异常: '+(e.message||'脚本加载失败，请检查网络连接'));document.getElementById('wsStat').innerHTML='<span style="color:#e74c3c">&#9888;</span> 引擎异常';};
+    document.getElementById('wsStat').innerHTML='<span class="online-dot"></span>引擎就绪';
+  }catch(e){
+    worker=null;
+    document.getElementById('wsStat').innerHTML='<span style="color:#e74c3c">&#9888;</span> 引擎启动失败';
+    setMsg('error','引擎启动失败: '+e.message+'。请勿直接双击HTML文件打开，建议使用命令行在本目录运行 python -m http.server 8888 后访问 http://localhost:8888');
+  }
+}
+
+function sendMsg(data,transfer){
+  if(!worker){return Promise.reject(new Error('计算引擎未启动。请勿直接双击HTML文件打开，建议使用 python -m http.server 或 Live Server 启动本地服务器后访问。'));}
+  var id=++pendingId;data.id=id;
+  return new Promise(function(resolve,reject){
+    callbacks[id]={resolve:resolve,reject:reject};
+    if(transfer){worker.postMessage(data,transfer);}
+    else{worker.postMessage(data);}
+  });
+}
+
+function handleWorkerMsg(e){
+  var d=e.data,id=d.id,cb=callbacks[id];
+  if(!cb)return;
+  if(d.type==='progress'){setP(d.pct);setMsg('info',d.msg);return;}
+  if(d.type==='uploadOk'){
+    var idx=d.index;
+    uploadCount[idx]=true;
+    var box=document.getElementById('box'+idx),fnE=document.getElementById('fn'+idx);
+    box.classList.remove('busy');box.classList.add('ok');
+    fnE.textContent=d.filename+' | '+d.rows+'行×'+d.cols+'列（原始数据）';
+    setMsg('success','表'+idx+' 上传完成。');
+    updateGbtn();
+    return;
+  }
+  if(d.type==='uploadErr'){setMsg('error','表'+d.index+' 失败: '+d.error);return;}
+  if(d.type==='dhint'){document.getElementById('dhint').textContent=d.text;return;}
+  delete callbacks[id];
+  if(d.type==='genOk'){
+    setP(100);setMsg('success','货盘生成成功！下载中...');
+    downloadBlob(d.workbook,d.filename);
+    displaySummary(d.summary);
+    document.getElementById('pw').classList.remove('on');
+    document.getElementById('gbtn').disabled=false;
+  }
+  if(d.type==='genErr'){setMsg('error',d.error);setP(0);document.getElementById('gbtn').disabled=false;}
+}
+
+function uploadFile(idx,input){
+  var f=input.files[0];if(!f)return;
+  var box=document.getElementById('box'+idx);
+  box.classList.add('busy');
+  var reader=new FileReader();
+  reader.onload=function(e){
+    sendMsg({type:'upload',index:idx,data:e.target.result,name:f.name},[e.target.result]).catch(function(err){setMsg('error','上传失败: '+err.message);box.classList.remove('busy');});
+  };
+  reader.readAsArrayBuffer(f);
+}
+
+function triggerGenerate(){
+  var gbtn=document.getElementById('gbtn');
+  gbtn.disabled=true;
+  setP(0);document.getElementById('pw').classList.add('on');
+  setMsg('info','正在收集参数并发送到引擎...');
+  var pt=(document.querySelector('input[name="pt"]:checked')||{}).value;
+  var ss=document.getElementById('ss').value;
+  var se=document.getElementById('se').value;
+  var cs=document.getElementById('cs').value;
+  var ce=document.getElementById('ce').value;
+  var weDays=[];
+  document.querySelectorAll('#weg input[type=checkbox]:checked').forEach(function(cb){weDays.push(parseInt(cb.value));});
+  var hidRaw=document.getElementById('hids').value.trim();
+  var nhRaw=document.getElementById('nhids').value.trim();
+  if(!pt){setMsg('error','请选择产品类型');gbtn.disabled=false;return;}
+  if(!ss||!se){setMsg('error','请填写售卖日期');gbtn.disabled=false;return;}
+  if(!cs||!ce){setMsg('error','请填写入住日期');gbtn.disabled=false;return;}
+  if(weDays.length===0){setMsg('error','请至少选择一个周末加价日');gbtn.disabled=false;return;}
+  if(new Date(ss)>new Date(se)||new Date(cs)>new Date(ce)){setMsg('error','日期区间错误');gbtn.disabled=false;return;}
+  sendMsg({type:'generate',params:{pt:pt,ss:ss,se:se,cs:cs,ce:ce,weDays:weDays,customHolidays:customHolidays,hidRaw:hidRaw,nhRaw:nhRaw}}).catch(function(err){
+    setMsg('error','生成失败: '+err);gbtn.disabled=false;
+  });
+}
+
+function downloadBlob(buf,filename){
+  var blob=new Blob([buf],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+  var url=URL.createObjectURL(blob);
+  var a=document.createElement('a');a.href=url;a.download=filename;
+  document.body.appendChild(a);a.click();document.body.removeChild(a);
+  setTimeout(function(){URL.revokeObjectURL(url);},1000);
+}
+
+function displaySummary(s){
+  var html='<table class="stab"><tr><th>项目</th><th>详情</th></tr>'+
+    '<tr><td>输出Sheet数</td><td><b>6个</b>：规则汇总 → 最终货盘表 → 今年历史 → 去年同期 → 去年历史 → 房型远期价格</td></tr>'+
+    '<tr><td>酒店-房型组合</td><td><b>'+s.hrCount+'</b> 行（严格全字匹配）</td></tr>'+
+    '<tr><td>产品类型</td><td>'+s.typeLabel+' (ptCode='+s.ptCode+')</td></tr>'+
+    '<tr><td>售卖时长</td><td>'+s.saleDays+'天 → <b>'+s.ruleLabel+'</b> (durType='+s.durType+')</td></tr>'+
+    '<tr><td>入住区间</td><td>'+s.csLabel+' ~ '+s.ceLabel+' ('+s.totalDays+'天)</td></tr>'+
+    '<tr><td>平日/周末/节假日</td><td>'+s.wdCnt+' / '+s.weCnt+' / '+s.hoCnt+' 天（周末='+s.weLabels+'）</td></tr>'+
+    '<tr><td>门市价公式</td><td>隐藏列AE~'+s.priceColLast+'：<b>=XLOOKUP($F{r}&$M{r},房型远期价格!B:B&D:D,房型远期价格!{门市价列}:{门市价列})</b></td></tr>'+
+    '<tr><td>均价公式</td><td>N-P：<b>=AVERAGEIF($AE$2:$'+s.priceColLast+'$2, 类型, $AE{r}:$'+s.priceColLast+'{r})</b></td></tr>'+
+    '<tr><td>输出文件</td><td><b>'+s.filename+'</b></td></tr>';
+  if(s.warns.length>0)html+='<tr><td>⚠ 注意</td><td class="wc">'+s.warns.join('<br>')+'</td></tr>';
+  html+='</table>';document.getElementById('sum').innerHTML=html;
+  if(s.warns.length>0)setMsg('warning','货盘已生成。'+s.warns.length+'条注意事项。');else setMsg('success','货盘生成成功！'+s.filename);
+}
+
+// ---- UI helpers (main thread) ----
+function setMsg(t,m){var b=document.getElementById('sbar');b.className='bar '+t;b.innerHTML=m;b.style.display='block';}
+function setP(p){var w=document.getElementById('pw'),f=document.getElementById('pf'),t=document.getElementById('ppct');w.classList.add('on');f.style.width=Math.min(100,p)+'%';t.textContent=Math.round(p)+'%';}
+function weUp(){var labels=document.querySelectorAll('#weg label');for(var i=0;i<labels.length;i++){var cb=labels[i].querySelector('input[type=checkbox]');if(cb&&cb.checked)labels[i].classList.add('sel');else labels[i].classList.remove('sel');}}
+function addHoliday(){var inp=document.getElementById('holPick'),val=inp.value;if(!val||!/^\d{4}-\d{2}-\d{2}$/.test(val))return;if(customHolidays.indexOf(val)>=0)return;customHolidays.push(val);customHolidays.sort();inp.value='';renderHolTags();}
+function removeHoliday(ds){customHolidays=customHolidays.filter(function(d){return d!==ds;});renderHolTags();}
+function renderHolTags(){var c=document.getElementById('holList');if(customHolidays.length===0){c.innerHTML='<span style="font-size:10px;color:var(--muted)">未添加自定义节假日</span>';return;}var h='';for(var i=0;i<customHolidays.length;i++)h+='<span class="tag">'+customHolidays[i]+' <span class="x" onclick="removeHoliday(\''+customHolidays[i]+'\')">&times;</span></span>';c.innerHTML=h;}
+function updateGbtn(){if(uploadCount[1]&&uploadCount[2]&&uploadCount[3]&&uploadCount[4]){setMsg('success','全部4个底表上传完成，可点击生成。');}}
+function initDates(){var t=new Date(),nm=new Date(t);nm.setMonth(nm.getMonth()+1);var se2=new Date(t);se2.setDate(se2.getDate()+21);var ce2=new Date(nm);ce2.setDate(ce2.getDate()+30);function fd(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}document.getElementById('ss').value=fd(t);document.getElementById('se').value=fd(se2);document.getElementById('cs').value=fd(nm);document.getElementById('ce').value=fd(ce2);}
+function resetAll(){for(var i=1;i<=4;i++){uploadCount[i]=false;document.getElementById('f'+i).value='';document.getElementById('fn'+i).textContent='';document.getElementById('box'+i).classList.remove('ok','busy');}document.getElementById('ss').value='';document.getElementById('se').value='';document.getElementById('cs').value='';document.getElementById('ce').value='';document.getElementById('hids').value='';document.getElementById('nhids').value='';document.getElementById('holPick').value='';customHolidays=[];renderHolTags();document.getElementById('sbar').style.display='none';document.getElementById('sum').innerHTML='';document.getElementById('pw').classList.remove('on');document.getElementById('pf').style.width='0';document.getElementById('ppct').textContent='0%';document.getElementById('dhint').textContent='';document.querySelector('input[name="pt"][value="single"]').checked=true;var cbs=document.querySelectorAll('#weg input[type=checkbox]');for(var i=0;i<cbs.length;i++){cbs[i].checked=(cbs[i].value==='5'||cbs[i].value==='6');}weUp();initDates();if(worker)sendMsg({type:'reset'});}
+document.getElementById('ss').addEventListener('change',function(){var s=new Date(document.getElementById('ss').value+'T00:00:00'),e=new Date(document.getElementById('se').value+'T00:00:00');if(!isNaN(s)&&!isNaN(e)&&s<=e){var d=Math.ceil((e-s)/86400000)+1;var w=d/7;document.getElementById('dhint').textContent='售卖: '+d+'天 ≈ '+w.toFixed(1)+'周 ('+(w<=4?'4周以内':'≥1个月')+'规则)';}});
+document.getElementById('se').addEventListener('change',function(){document.getElementById('ss').dispatchEvent(new Event('change'));});
+
+// ---- Init (defer to DOM ready so workerCode script tag is parsed) ----
+if(document.readyState==='loading'){
+  document.addEventListener('DOMContentLoaded',function(){initWorker();initDates();renderHolTags();});
+}else{
+  initWorker();initDates();renderHolTags();
+}
+</script>
+
+<!-- ============================================================ -->
+<!-- WORKER CODE (runs in separate thread)                         -->
+<!-- ============================================================ -->
+<script id="workerCode" type="text/worker">
+try{importScripts('https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js');}catch(e){try{importScripts('https://cdn.jsdelivr.net/npm/xlsx@0.20.1/dist/xlsx.full.min.js');}catch(e2){throw new Error('SheetJS加载失败: 请检查网络连接');}}
+
+// ============================================================
+// STATE (per-user, isolated in this worker instance)
+// ============================================================
+var rawWb={1:null,2:null,3:null,4:null};
+var cleanAoa={1:null,2:null,3:null,4:null};
+var pendingId=0;
+
+// ============================================================
+// UTILS (100% identical to local version)
+// ============================================================
+function pDate(s){if(!s)return null;var d=new Date(s+'T00:00:00');return isNaN(d.getTime())?null:d;}
+function fmtDate(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+function addDay(d,n){var r=new Date(d);r.setDate(r.getDate()+n);return r;}
+function xl2date(v){
+  if(!v)return null;
+  if(v instanceof Date)return new Date(v.getFullYear(),v.getMonth(),v.getDate());
+  if(typeof v==='number'){var d=new Date((v-25569)*86400*1000);return new Date(d.getFullYear(),d.getMonth(),d.getDate());}
+  var s=String(v).trim();var m=s.match(/^(\d{4})[-/](\d{1,2})[-/](\d{1,2})/);
+  if(m)return new Date(+m[1],+m[2]-1,+m[3]);
+  return null;
+}
+function date2xl(d){return Math.round(d.getTime()/86400000)+25569;}
+function colName(idx){var s='',n=idx;while(n>=0){s=String.fromCharCode(65+(n%26))+s;n=Math.floor(n/26)-1;}return s;}
+
+// ============================================================
+// OCC TABLE COLUMN DETECTION
+// ============================================================
+var OCC_COL_MAP={事业部:0,一级分区:1,商圈:6,品牌级别:8,酒店类型:9,酒店编码:14,酒店名称:15,日期:16,过夜出租率:29};
+function occCols(aoa){
+  if(!aoa||aoa.length<2)return null;
+  var h=aoa[0],map={};
+  var targets={
+    '事业部':['事业部','BU','事业群','部门'],'一级分区':['一级分区','大区','分区'],
+    '商圈':['商圈','商圈信息','商圈名称'],'品牌级别':['品牌级别','品牌','品牌等级'],
+    '酒店类型':['酒店类型','类型'],'酒店编码':['酒店编码','酒店代码','酒店ID','hotel_id','酒店id','hotelId'],
+    '酒店名称':['酒店名称','酒店名','酒店'],'日期':['日期','date','日期列','营业日期'],
+    '过夜出租率':['过夜出租率','出租率','OCC','occ','过夜OCC','入住率']
+  };
+  for(var k in targets){
+    var names=targets[k];
+    for(var ci=0;ci<h.length;ci++){
+      var hv=String(h[ci]||'').trim();
+      for(var ni=0;ni<names.length;ni++){if(hv===names[ni]||hv.indexOf(names[ni])>=0){map[k]=ci;break;}}
+      if(map[k]!==undefined)break;
+    }
+  }
+  for(var k in OCC_COL_MAP){if(map[k]===undefined)map[k]=OCC_COL_MAP[k];}
+  return map;
+}
+
+// ============================================================
+// PRICING TABLE PARSER
+// ============================================================
+var METRICS_PER_DATE=7;
+function parsePricing(aoa){
+  if(!aoa||aoa.length<10)return{hotelRooms:[],pricesByDate:{},dateList:[],dateStartCol:9,dateRow:9};
+  var dateRow=9,dateStartCol=9;
+  var metricRow=dateRow+1;
+
+  var dateList=[],seenDates={};
+  for(var c=dateStartCol;c<(aoa[dateRow]||[]).length;c++){
+    var dv=xl2date(aoa[dateRow][c]);
+    if(dv){var ds=fmtDate(dv);if(!seenDates[ds]){seenDates[ds]=true;dateList.push(ds);}}
+  }
+  if(dateList.length===0)return{hotelRooms:[],pricesByDate:{},dateList:[],dateStartCol:dateStartCol};
+
+  var hotelRooms=[],seenHR={},pricesByDate={};
+  for(var r=0;r<aoa.length;r++){
+    if(r===dateRow||r===metricRow)continue;
+    var row=aoa[r];if(!row||row.length<4)continue;
+    var hotelId=String(row[1]||'');
+    var hotelName=String(row[2]||'');
+    var roomType=String(row[3]||'');
+    if(!hotelId)continue;
+    var hrKey=hotelId+'|'+roomType;
+    if(!seenHR[hrKey]){seenHR[hrKey]=true;hotelRooms.push({hotelId:hotelId,hotelName:hotelName,roomType:roomType,regionMgr:String(row[0]||'').trim()});}
+    if(!pricesByDate[hrKey])pricesByDate[hrKey]={};
+    for(var i=0;i<dateList.length;i++){
+      var ds=dateList[i];if(pricesByDate[hrKey][ds]!==undefined)continue;
+      var blkStart=-1;
+      for(var c=dateStartCol;c<(aoa[dateRow]||[]).length;c++){
+        var cdv=xl2date(aoa[dateRow][c]);if(cdv&&fmtDate(cdv)===ds){blkStart=c;break;}
+      }
+      if(blkStart<0)continue;
+      var mktCol=-1;
+      for(var cc=blkStart;cc<Math.min(blkStart+METRICS_PER_DATE,(aoa[metricRow]||[]).length);cc++){
+        if(String((aoa[metricRow]||[])[cc]||'').trim()==='门市价'){mktCol=cc;break;}
+      }
+      if(mktCol<0)mktCol=blkStart;
+      if(mktCol<row.length){var pr=parseFloat(row[mktCol]);if(!isNaN(pr)&&pr>0)pricesByDate[hrKey][ds]=pr;}
+    }
+  }
+  return{hotelRooms:hotelRooms,pricesByDate:pricesByDate,dateList:dateList,dateStartCol:dateStartCol,dateRow:dateRow};
+}
+
+// ============================================================
+// GENERATION (params from main thread)
+// ============================================================
+function generate(params,report){
+  var pt=params.pt,ss=pDate(params.ss),se=pDate(params.se),cs=pDate(params.cs),ce=pDate(params.ce);
+  var weDays=params.weDays,customHolidays=params.customHolidays||[];
+  var hidRaw=params.hidRaw||'',nhRaw=params.nhRaw||'';
+
+  if(!pt||!ss||!se||!cs||!ce||weDays.length===0)throw new Error('参数不完整');
+  if(ss>se||cs>ce)throw new Error('日期区间错误');
+  if(!cleanAoa[1]||!cleanAoa[2]||!cleanAoa[3]||!cleanAoa[4])throw new Error('请先上传全部4个底表');
+
+  var weDaySet={};for(var i=0;i<weDays.length;i++)weDaySet[weDays[i]]=true;
+  var holSet=new Set();for(var i=0;i<customHolidays.length;i++)holSet.add(customHolidays[i]);
+  var hidFilter=hidRaw?hidRaw.split(/[\n,，\s]+/).filter(Boolean).reduce(function(a,v){a[v]=true;return a;},{}):null;
+
+  var saleDays=Math.ceil((se-ss)/86400000)+1,saleWeeks=saleDays/7;
+  report(3,'售卖: '+saleDays+'天 ≈ '+saleWeeks.toFixed(1)+'周 → '+(saleWeeks<=4?'4周以内规则':'≥1个月规则'),'dhint');
+
+  report(5,'正在解析4份底表...');
+  var cm1=occCols(cleanAoa[1]),cm2=occCols(cleanAoa[2]),cm3=occCols(cleanAoa[3]);
+  if(!cm1||!cm2||!cm3)throw new Error('OCC表列识别失败');
+
+  var pricing=parsePricing(cleanAoa[4]);
+  var hrs=pricing.hotelRooms,pbd=pricing.pricesByDate;
+  var pricingDates=pricing.dateList,pricingDateStartCol=pricing.dateStartCol;
+  if(hrs.length===0)throw new Error('房型远期价格表未识别到酒店-房型数据');
+  report(20,'底表解析完成，'+hrs.length+'个酒店-房型组合');
+
+  var filteredHrs=[];
+  for(var h=0;h<hrs.length;h++){if(!hidFilter||hidFilter[hrs[h].hotelId])filteredHrs.push(hrs[h]);}
+  if(filteredHrs.length===0)throw new Error('没有匹配的酒店ID。可用：'+hrs.slice(0,5).map(function(x){return x.hotelId;}).join('、'));
+
+  // Date classification (节假日 > 周末 > 平日, 不含T-1)
+  var allDates=[],wdDates=[],weDates=[],hoDates=[],dateType={};
+  var d=new Date(cs);
+  while(d<=ce){
+    allDates.push(new Date(d));var ds=fmtDate(d),dw=d.getDay();
+    if(holSet.has(ds)){hoDates.push(new Date(d));dateType[ds]='节假日';}
+    else if(weDaySet[dw]){weDates.push(new Date(d));dateType[ds]='周末';}
+    else{wdDates.push(new Date(d));dateType[ds]='平日';}
+    d.setDate(d.getDate()+1);
+  }
+  var pureHoInRange=[];
+  holSet.forEach(function(hs){var hd=pDate(hs);if(hd&&hd>=cs&&hd<=ce)pureHoInRange.push(hs);});
+  report(35,'日期分类完成');
+
+  var pricingDateIdx={};
+  for(var i=0;i<pricingDates.length;i++)pricingDateIdx[pricingDates[i]]=i;
+
+  // Missing price warnings
+  var missingPrice=[];
+  for(var h=0;h<filteredHrs.length;h++){
+    var hr=filteredHrs[h],key=hr.hotelId+'|'+hr.roomType;
+    var hrPrices=pbd[key]||{};var hasAny=false;
+    for(var i=0;i<allDates.length;i++){if(hrPrices[fmtDate(allDates[i])]!==undefined){hasAny=true;break;}}
+    if(!hasAny)missingPrice.push(hr.hotelId+'/'+hr.roomType);
+  }
+  report(50,'正在生成含XLOOKUP+AVERAGEIF公式的6 Sheet Excel...');
+
+  // Build workbook
+  var outWb=XLSX.utils.book_new();
+  var ptCode=pt==='double_nosplit'?3:(pt==='double_split'?2:1);
+  var durType=saleWeeks<=4?4:5;
+  var csXl=date2xl(cs),ceXl=date2xl(ce);
+  var lyCs=new Date(cs);lyCs.setFullYear(lyCs.getFullYear()-1);
+  var lyCe=new Date(ce);lyCe.setFullYear(lyCe.getFullYear()-1);
+  var lyCsXl=date2xl(lyCs),lyCeXl=date2xl(lyCe);
+
+  // Sheet 1: 规则汇总
+  var typeLabel=pt==='single'?'单晚':(pt==='double_split'?'双晚可拆分':'双晚不可拆');
+  var weMap={0:'周日',1:'周一',2:'周二',3:'周三',4:'周四',5:'周五',6:'周六'};
+  var weLabels=weDays.map(function(d){return weMap[d];});
+  var holDesc=customHolidays.length>0?customHolidays.join('、'):'无';
+  var ruleData=[['规则项','内容'],
+    ['产品类型',typeLabel],['入住时间',fmtDate(cs)+' ~ '+fmtDate(ce)+'（共'+allDates.length+'天）'],
+    ['售卖时间',fmtDate(ss)+' ~ '+fmtDate(se)+'（共'+saleDays+'天，约'+saleWeeks.toFixed(1)+'周）'],
+    ['售卖时长规则',saleWeeks<=4?'4周以内规则':'≥1个月规则'],
+    ['周末加价日',weLabels.join('、')+'（共'+weLabels.length+'天/周）'],
+    ['节假日加价',holDesc],
+    ['入住期内法定节假日',pureHoInRange.length>0?pureHoInRange.join('、'):'无'],
+    ['日期分类','平日'+wdDates.length+'天 / 周末'+weDates.length+'天 / 节假日'+hoDates.length+'天'],
+    ['门市价公式','XLOOKUP($F&$M, 房型远期价格!B:B&D:D, 房型远期价格!对应日期门市价列)'],
+    ['均价公式','AVERAGEIF($类型行$2, 类型, $价格行)'],
+    ['卖价取整','CEILING(x-9,10)+9'],['加价金额','直接减法，不设门槛'],
+    ['公式引擎','XLOOKUP(A-J) | IFERROR(K) | IFS(L) | AVERAGEIF(N-P) | ROUND(Q-S) | CEILING(T,U,W)'],
+    ['新店判定','去年历史NOCC为空 → 预估NOCC=今年历史NOCC'],
+    ['输出文件','6个工作表（规则汇总+最终货盘表+4源表），无合并单元格']
+  ];
+  var wsRule=XLSX.utils.aoa_to_sheet(ruleData);
+  wsRule['!merges']=[];wsRule['!cols']=[{wpx:170},{wpx:540}];wsRule['!freeze']={xSplit:0,ySplit:1};
+  XLSX.utils.book_append_sheet(outWb,wsRule,'规则汇总');
+  report(60,'规则汇总已生成');
+
+  // Sheet 2: 最终货盘表
+  var HIDDEN_CFG_START=24,HIDDEN_CFG_COUNT=6,HIDDEN_PRICE_START=30;
+  var numDates=Math.min(allDates.length,pricingDates.length);
+  var visHdr=['事业部','一级分区','品牌级别','酒店类型','商圈信息','酒店编码','酒店名称',
+    '去年同期NOCC','今年历史NOCC','去年历史NOCC','预估NOCC','最低折扣标准','房型中文名称',
+    '平日门市价均值','周末门市价均值','节假日门市价均值',
+    '平日门市价均值*最低折扣','周末门市价均值*最低折扣','节假日门市价均值*最低折扣',
+    '平日卖价(9结尾)','周末卖价(9结尾)','周末加价金额','节假日卖价(9结尾)','节假日加价金额'];
+  var cfgNameHdr=['_cfgCS','_cfgCE','_cfgLYCS','_cfgLYCE','_cfgPT','_cfgDur'];
+
+  var row1=visHdr.concat(cfgNameHdr);
+  var row2=[];
+  for(var c=0;c<24;c++)row2.push('');
+  row2.push(csXl);row2.push(ceXl);row2.push(lyCsXl);row2.push(lyCeXl);row2.push(ptCode);row2.push(durType);
+
+  var weFormulaParts=[];
+  for(var wi=0;wi<weDays.length;wi++){weFormulaParts.push('WEEKDAY(XCOL1,1)='+(weDays[wi]+1));}
+  var weFormulaStr=weFormulaParts.join(',');
+
+  var holDateParts=[];
+  for(var hi=0;hi<customHolidays.length;hi++){
+    var hd=pDate(customHolidays[hi]);if(hd)holDateParts.push('INT(XCOL1)=DATE('+hd.getFullYear()+','+(hd.getMonth()+1)+','+hd.getDate()+')');
+  }
+  var holFormulaStr=holDateParts.join(',');
+
+  for(var i=0;i<numDates;i++){
+    var colLtr=colName(HIDDEN_PRICE_START+i);
+    var pColLtr=colName(pricingDateStartCol+i*METRICS_PER_DATE);
+    row1.push({t:'n',f:'房型远期价格!'+pColLtr+'11',z:'yyyy-mm-dd'});
+    var typeF;
+    if(holDateParts.length>0){
+      typeF='IF(OR('+holFormulaStr.replace(/XCOL/g,colLtr)+'),"节假日",IF(OR('+weFormulaStr.replace(/XCOL/g,colLtr)+'),"周末","平日"))';
+    }else{
+      typeF='IF(OR('+weFormulaStr.replace(/XCOL/g,colLtr)+'),"周末","平日")';
+    }
+    row2.push({t:'s',f:typeF});
+  }
+
+  var sd=[row1,row2];
+  var priceColFirst=colName(HIDDEN_PRICE_START);
+  var priceColLast=colName(HIDDEN_PRICE_START+numDates-1);
+
+  for(var h=0;h<filteredHrs.length;h++){
+    var hr=filteredHrs[h],key=hr.hotelId+'|'+hr.roomType;
+    var rn=h+3;
+    var row=[];
+    row.push({t:'s',f:'XLOOKUP($F'+rn+',\'今年历史\'!O:O,\'今年历史\'!A:A,"")'});
+    row.push({t:'s',f:'XLOOKUP($F'+rn+',\'今年历史\'!O:O,\'今年历史\'!B:B,"")'});
+    row.push({t:'s',f:'XLOOKUP($F'+rn+',\'今年历史\'!O:O,\'今年历史\'!I:I,"")'});
+    row.push({t:'s',f:'XLOOKUP($F'+rn+',\'今年历史\'!O:O,\'今年历史\'!J:J,"")'});
+    row.push({t:'s',f:'XLOOKUP($F'+rn+',\'今年历史\'!O:O,\'今年历史\'!G:G,"")'});
+    row.push({t:'s',v:hr.hotelId});
+    row.push({t:'s',f:'XLOOKUP($F'+rn+',\'今年历史\'!O:O,\'今年历史\'!P:P,"")'});
+    row.push({t:'n',f:'XLOOKUP($F'+rn+',\'去年同期\'!O:O,\'去年同期\'!AD:AD,"")'});
+    row.push({t:'n',f:'XLOOKUP($F'+rn+',\'今年历史\'!O:O,\'今年历史\'!AD:AD,"")'});
+    row.push({t:'n',f:'XLOOKUP($F'+rn+',\'去年历史\'!O:O,\'去年历史\'!AD:AD,"")'});
+    row.push({t:'n',f:'IFERROR(IF(J'+rn+'="",I'+rn+',H'+rn+'+I'+rn+'-J'+rn+'),IF(ISNA(I'+rn+'),"无数据",I'+rn+'))'});
+    row.push({t:'n',f:'IF(K'+rn+'="","",IFS(AND($AD$2<=4,$AC$2=3,K'+rn+'>=0.75),0.82,AND($AD$2<=4,$AC$2=3,K'+rn+'>0.65),0.76,AND($AD$2<=4,$AC$2=3,K'+rn+'<=0.65),0.72,AND($AD$2<=4,$AC$2<>3,K'+rn+'>=0.75),0.84,AND($AD$2<=4,$AC$2<>3,K'+rn+'>0.65),0.77,AND($AD$2<=4,$AC$2<>3,K'+rn+'<=0.65),0.74,AND($AD$2>4,$AC$2=3,K'+rn+'>=0.75),0.84,AND($AD$2>4,$AC$2=3,K'+rn+'>0.65),0.77,AND($AD$2>4,$AC$2=3,K'+rn+'<=0.65),0.74,AND($AD$2>4,$AC$2<>3,K'+rn+'>=0.75),0.86,AND($AD$2>4,$AC$2<>3,K'+rn+'>0.65),0.79,AND($AD$2>4,$AC$2<>3,K'+rn+'<=0.65),0.75,TRUE,""))'});
+    row.push({t:'s',v:hr.roomType});
+    row.push({t:'n',f:'IFERROR(AVERAGEIF($'+priceColFirst+'$2:$'+priceColLast+'$2,"平日",$'+priceColFirst+rn+':$'+priceColLast+rn+'),"")'});
+    row.push({t:'n',f:'IFERROR(AVERAGEIF($'+priceColFirst+'$2:$'+priceColLast+'$2,"周末",$'+priceColFirst+rn+':$'+priceColLast+rn+'),"")'});
+    row.push({t:'n',f:'IFERROR(AVERAGEIF($'+priceColFirst+'$2:$'+priceColLast+'$2,"节假日",$'+priceColFirst+rn+':$'+priceColLast+rn+'),"")'});
+    row.push({t:'n',f:'IF(OR(N'+rn+'="",L'+rn+'=""),"",ROUND(N'+rn+'*L'+rn+',2))'});
+    row.push({t:'n',f:'IF(OR(O'+rn+'="",L'+rn+'=""),"",ROUND(O'+rn+'*L'+rn+',2))'});
+    row.push({t:'n',f:'IF(OR(P'+rn+'="",L'+rn+'=""),"",ROUND(P'+rn+'*L'+rn+',2))'});
+    row.push({t:'n',f:'IF(Q'+rn+'="","",CEILING(Q'+rn+'-9,10)+9)'});
+    row.push({t:'n',f:'IF(R'+rn+'="","",CEILING(R'+rn+'-9,10)+9)'});
+    row.push({t:'n',f:'IF(OR(T'+rn+'="",U'+rn+'=""),"",U'+rn+'-T'+rn+')'});
+    row.push({t:'n',f:'IF(S'+rn+'="","",CEILING(S'+rn+'-9,10)+9)'});
+    row.push({t:'n',f:'IF(OR(T'+rn+'="",W'+rn+'=""),"",W'+rn+'-T'+rn+')'});
+    for(var c=0;c<HIDDEN_CFG_COUNT;c++)row.push('');
+    for(var i=0;i<numDates;i++){
+      var mktColIdx=pricingDateStartCol+i*METRICS_PER_DATE;
+      var mktColLetter=colName(mktColIdx);
+      var xlF='XLOOKUP($F'+rn+'&$M'+rn+',房型远期价格!B:B&房型远期价格!D:D,房型远期价格!'+mktColLetter+':'+mktColLetter+')';
+      row.push({t:'n',f:'IFERROR(1/(1/('+xlF+')),"")'});
+    }
+    sd.push(row);
+  }
+
+  var wsFinal=XLSX.utils.aoa_to_sheet(sd);
+  wsFinal['!merges']=[];wsFinal['!freeze']={xSplit:0,ySplit:2};
+
+  var colW=[];
+  for(var c=0;c<5;c++)colW.push({wpx:95});
+  colW.push({wpx:85});colW.push({wpx:130});
+  for(var c=7;c<11;c++)colW.push({wpx:90});
+  colW.push({wpx:95});colW.push({wpx:120});
+  for(var c=13;c<16;c++)colW.push({wpx:105});
+  for(var c=16;c<19;c++)colW.push({wpx:120});
+  for(var c=19;c<24;c++)colW.push({wpx:105});
+  for(var c=24;c<HIDDEN_PRICE_START;c++)colW.push({hidden:true,wpx:50});
+  for(var c=HIDDEN_PRICE_START;c<HIDDEN_PRICE_START+numDates;c++)colW.push({hidden:true,wpx:60});
+  wsFinal['!cols']=colW;
+
+  function fmt(ws,cell,z){if(ws[cell])ws[cell].z=z;}
+  for(var i=0;i<numDates;i++){fmt(wsFinal,colName(HIDDEN_PRICE_START+i)+'1','yyyy-mm-dd');}
+  for(var r=3;r<sd.length+1;r++){
+    fmt(wsFinal,'H'+r,'0.0%');fmt(wsFinal,'I'+r,'0.0%');fmt(wsFinal,'J'+r,'0.0%');fmt(wsFinal,'K'+r,'0.0%');
+    fmt(wsFinal,'L'+r,'0%');
+    fmt(wsFinal,'N'+r,'#,##0.00');fmt(wsFinal,'O'+r,'#,##0.00');fmt(wsFinal,'P'+r,'#,##0.00');
+    fmt(wsFinal,'Q'+r,'#,##0.00');fmt(wsFinal,'R'+r,'#,##0.00');fmt(wsFinal,'S'+r,'#,##0.00');
+    fmt(wsFinal,'T'+r,'#,##0');fmt(wsFinal,'U'+r,'#,##0');fmt(wsFinal,'V'+r,'#,##0');
+    fmt(wsFinal,'W'+r,'#,##0');fmt(wsFinal,'X'+r,'#,##0');
+    for(var i=0;i<numDates;i++){fmt(wsFinal,colName(HIDDEN_PRICE_START+i)+r,'#,##0');}
+  }
+  XLSX.utils.book_append_sheet(outWb,wsFinal,'最终货盘表');
+  report(80,'最终货盘表已生成');
+
+  // Sheets 3-6: Raw source data
+  var srcOrder=[2,1,3,4],srcNames=['今年历史','去年同期','去年历史','房型远期价格'];
+  for(var i=0;i<4;i++){
+    var srcWb=rawWb[srcOrder[i]],srcSheet=srcWb.Sheets[srcWb.SheetNames[0]];
+    XLSX.utils.book_append_sheet(outWb,srcSheet,srcNames[i]);
+  }
+  report(95,'源表已附加');
+
+  var fn='抖音城市号预售券货盘_'+fmtDate(new Date())+'.xlsx';
+  var wbOut=XLSX.write(outWb,{bookType:'xlsx',type:'array',cellFormula:true,cellStyles:true});
+
+  var ruleLabel=saleWeeks<=4?'4周以内规则':'≥1个月规则';
+  var warns=[];
+  if(missingPrice.length>0)warns.push('以下酒店/房型在入住期内无价盘数据: '+missingPrice.slice(0,8).join(', ')+(missingPrice.length>8?'等共'+missingPrice.length+'个':''));
+
+  return{
+    workbook:wbOut,
+    filename:fn,
+    summary:{
+      hrCount:filteredHrs.length,typeLabel:typeLabel,ptCode:ptCode,
+      saleDays:saleDays,ruleLabel:ruleLabel,durType:durType,
+      csLabel:fmtDate(cs),ceLabel:fmtDate(ce),totalDays:allDates.length,
+      wdCnt:wdDates.length,weCnt:weDates.length,hoCnt:hoDates.length,
+      weLabels:weLabels.join('、'),priceColLast:priceColLast,
+      filename:fn,warns:warns
+    }
+  };
+}
+
+// ============================================================
+// WORKER MESSAGE HANDLER
+// ============================================================
+self.onmessage=function(e){
+  var d=e.data,id=d.id;
+  function reply(data,transfer){data.id=id;if(transfer)self.postMessage(data,transfer);else self.postMessage(data);}
+  try{
+    if(d.type==='upload'){
+      var raw=XLSX.read(new Uint8Array(d.data),{type:'array'});
+      rawWb[d.index]=raw;
+      var sheet=raw.Sheets[raw.SheetNames[0]];
+      cleanAoa[d.index]=XLSX.utils.sheet_to_json(sheet,{header:1,defval:''});
+      reply({type:'uploadOk',index:d.index,rows:cleanAoa[d.index].length,cols:(cleanAoa[d.index][0]||[]).length,filename:d.name});
+    }else if(d.type==='generate'){
+      var result=generate(d.params,function(pct,msg,dhint){
+        if(dhint)self.postMessage({id:id,type:'dhint',text:msg});
+        else self.postMessage({id:id,type:'progress',pct:pct,msg:msg});
+      });
+      reply({type:'genOk',workbook:result.workbook,filename:result.filename,summary:result.summary},[result.workbook.buffer]);
+    }else if(d.type==='reset'){
+      rawWb={1:null,2:null,3:null,4:null};
+      cleanAoa={1:null,2:null,3:null,4:null};
+    }
+  }catch(err){
+    reply({type:d.type==='generate'?'genErr':'uploadErr',error:err.message,index:d.index});
+  }
+};
+</script>
+</body>
+</html>
